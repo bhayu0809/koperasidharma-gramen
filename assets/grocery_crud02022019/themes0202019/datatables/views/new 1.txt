@@ -1,0 +1,1 @@
+ALTER TABLE `tbl_anggota` ADD `nik` VARCHAR(50) NULL DEFAULT NULL AFTER `id`;

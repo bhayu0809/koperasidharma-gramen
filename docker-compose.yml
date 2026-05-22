@@ -1,0 +1,14 @@
+services:
+  app:
+    build:
+      context: .
+    container_name: koperasi-gramen-app
+    env_file:
+      - .env
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      - .:/var/www/html
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
