@@ -195,30 +195,66 @@ striped="true">
 	class="table table-striped"
 	title="Data Jumlah Per Jenis simpanan">
 	<tr>
-		<th>Jenis Simpanan</th>
+		<th>Keterangan</th>
 		<th>Total Jumlah</th>
 	
 	</tr>
 	<?php
-		
+		$simpanan_pokok = isset($pokok->simpanan_pokok) ? $pokok->simpanan_pokok : 0;
+		$simpanan_wajib = isset($wajib->simpanan_wajib) ? $wajib->simpanan_wajib : 0;
+		$simpanan_sukarela = isset($sukarela->simpanan_sukarela) ? $sukarela->simpanan_sukarela : 0;
+		$simpanan_total = isset($total->simpanan_total) ? $total->simpanan_total : 0;
+
+		$penarikan_pokok_total = isset($penarikan_pokok->penarikan_pokok) ? $penarikan_pokok->penarikan_pokok : 0;
+		$penarikan_wajib_total = isset($penarikan_wajib->penarikan_wajib) ? $penarikan_wajib->penarikan_wajib : 0;
+		$penarikan_sukarela_total = isset($penarikan_sukarela->penarikan_sukarela) ? $penarikan_sukarela->penarikan_sukarela : 0;
+		$penarikan_total_jumlah = isset($penarikan_total->penarikan_total) ? $penarikan_total->penarikan_total : 0;
+		$saldo_total = $simpanan_total - $penarikan_total_jumlah;
+		$link_penarikan = !empty($aid) ? site_url('penarikan/listp/'.$aid) : site_url('penarikan');
+
 		echo '<tr>';
-		echo '<td>Simpanan Pokok</td>';
-		echo '<td>'.number_format($pokok->simpanan_pokok - $penarikan_pokok->penarikan_pokok).'</td>';
+		echo '<td>Setoran Simpanan Pokok</td>';
+		echo '<td>'.number_format($simpanan_pokok).'</td>';
 		echo '</tr>';
 		
 		echo '<tr>';
-		echo '<td>Simpanan Wajib</td>';
-		echo '<td>'.number_format($wajib->simpanan_wajib - $penarikan_wajib->penarikan_wajib).'</td>';
+		echo '<td>Setoran Simpanan Wajib</td>';
+		echo '<td>'.number_format($simpanan_wajib).'</td>';
 		echo '</tr>';
 		
 		echo '<tr>';
-		echo '<td>Simpanan Sukarela</td>';
-		echo '<td>'.number_format($sukarela->simpanan_sukarela - $penarikan_sukarela->penarikan_sukarela).'</td>';
+		echo '<td>Setoran Simpanan Sukarela</td>';
+		echo '<td>'.number_format($simpanan_sukarela).'</td>';
+		echo '</tr>';
+
+		echo '<tr>';
+		echo '<th>Total Setoran</th>';
+		echo '<th>'.number_format($simpanan_total).'</th>';
+		echo '</tr>';
+
+		echo '<tr>';
+		echo '<td>Penarikan/Pengeluaran Pokok</td>';
+		echo '<td><a href="'.$link_penarikan.'">'.number_format($penarikan_pokok_total).'</a></td>';
+		echo '</tr>';
+
+		echo '<tr>';
+		echo '<td>Penarikan/Pengeluaran Wajib</td>';
+		echo '<td><a href="'.$link_penarikan.'">'.number_format($penarikan_wajib_total).'</a></td>';
+		echo '</tr>';
+
+		echo '<tr>';
+		echo '<td>Penarikan/Pengeluaran Sukarela</td>';
+		echo '<td><a href="'.$link_penarikan.'">'.number_format($penarikan_sukarela_total).'</a></td>';
+		echo '</tr>';
+
+		echo '<tr>';
+		echo '<th>Total Penarikan/Pengeluaran</th>';
+		echo '<th><a href="'.$link_penarikan.'">'.number_format($penarikan_total_jumlah).'</a></th>';
 		echo '</tr>';
 		
 		echo '<tr>';
-		echo '<th>Total</th>';
-		echo '<th>'.number_format($total->simpanan_total - $penarikan_total->penarikan_total).'</th>';
+		echo '<th>Saldo Akhir</th>';
+		echo '<th>'.number_format($saldo_total).'</th>';
 		echo '</tr>';
 		
 	?>
@@ -520,4 +556,3 @@ function cetak () {
 	}
 }
 </script>
-
