@@ -26,12 +26,12 @@
 
 <?php 
 
-	if(isset($_REQUEST['tahun'])) {
-		$tahunget = $_REQUEST['tahun'];
+	if(isset($_REQUEST['tgl']) && $_REQUEST['tgl'] != '') {
+		$tglget = date('Y-m-d', strtotime($_REQUEST['tgl']));
 	} else {
-		$tahunget = date('Y');
+		$tglget = date('Y-m-d');
 	}
-	$tgl_periode_txt = $tahunget;
+	$tgl_periode_txt = date('d-m-Y', strtotime($tglget));
 ?>
 
 <!--<div class="box box-solid box-primary">
@@ -74,15 +74,11 @@
 			<table>
 				<tr>
 					<td>
-						Tahun
+						Tanggal
 					</td>
 					<td>&nbsp;</td>
 					<td>
-						<select name="tahun">
-							<?php for($i=2018;$i <= date("Y");$i++): ?>
-								<option value="<?php echo $i ?>" <?php echo ($tahunget == $i ? "selected" : ""); ?>><?php echo $i; ?></option>
-							<?php endfor; ?>
-						</select>
+						<input type="date" name="tgl" id="tgl_filter" value="<?php echo $tglget; ?>" class="form-control" style="width:auto;">
 					</td>
 				</tr>
 			</table>
@@ -142,6 +138,7 @@
 				<th style="width:20%; vertical-align: middle; text-align:center" colspan="4"> Simpanan  </th>
 				<th style="width:20%; vertical-align: middle; text-align:center" colspan="2"> Pinjaman  </th>
 				<th style="width:20%; vertical-align: middle; text-align:center" rowspan="2"> Jasa dibayar </th>
+				<th style="width:20%; vertical-align: middle; text-align:center" rowspan="2"> Sisa Jasa </th>
 			</tr>
 			<tr class="header_kolom">
 				<th style="vertical-align: middle; text-align:center" > Pokok</th>
@@ -175,14 +172,16 @@
 				<td>'.number_format($v2['pokok']).'</td>
 				<td>'.number_format($jml).'</td>
 				<td>'.number_format($v2['jasa_dibayar']).'</td>
+				<td>'.number_format($v2['sisa_jasa']).'</td>
 			</tr>';
 			$subtotal_pokok += $v2['simpanan_pokok'];
 			$subtotal_wajib += $v2['simpanan_wajib'];
 			$subtotal_sukarela += $v2['simpanan_sukarela'];
-			$subtotal_pinjaman_pokok += $v2['pokok'];			
+			$subtotal_pinjaman_pokok += $v2['pokok'];
 			$subtotal_dibayar += $v2['jumlah_bayar'];
-			$subtotal_jml_simpanan += $v2['jumlah_simpanan'];			
+			$subtotal_jml_simpanan += $v2['jumlah_simpanan'];
 			$subtotal_jasa_dibayar += $v2['jasa_dibayar'];
+			$subtotal_sisa_jasa += $v2['sisa_jasa'];
 			$subtotal_sisa += $jml;
 			$no++;
 		}
@@ -198,8 +197,9 @@
 			<th>'.number_format($subtotal_pinjaman_pokok).'</th>
 			<th>'.number_format($subtotal_sisa).'</th>
 			<th>'.number_format($subtotal_jasa_dibayar).'</th>
+			<th>'.number_format($subtotal_sisa_jasa).'</th>
 		</tr>';
-		
+
 		$total_pokok += $subtotal_pokok;
 		$total_wajib += $subtotal_wajib;
 		$total_sukarela += $subtotal_sukarela;
@@ -224,7 +224,7 @@
 			<th>'.number_format($total_pinjaman_pokok).'</th>
 			<th>'.number_format($jumlah_subtotal).'</th>
 			<th>'.number_format($total_jasa_dibayar).'</th>
-			
+			<th>'.number_format($total_sisa_jasa).'</th>
 		</tr>';
 
 	echo '</table>';

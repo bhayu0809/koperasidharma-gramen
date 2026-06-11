@@ -11,39 +11,44 @@ class Lap_nominatif extends OPPController {
 	public function index() {
 		if(isset($_GET['hitung'])){
 			$area = $this->db->get("mst_area")->result();
-			$tahun = $_GET['tahun'];
+			$tgl = (isset($_GET['tgl']) && $_GET['tgl'] != '') ? date('Y-m-d', strtotime($_GET['tgl'])) : date('Y-m-d');
+			$tahun = date('Y', strtotime($tgl));
 			$data_area = array();
 			foreach($area AS $v){
 				$data_area[$v->nama_area]= $v->nama_area;
 			}
 			
 			$select = "
-					SELECT b.id, b.nama,b.identitas,b.departement,tarikan_simpanan_pokok,jml_pinjaman,jml_pinjaman_pokok,tarikan_simpanan_wajib,tarikan_simpanan_sukarela,simpanan_pokok,simpanan_wajib,simpanan_sukarela,v2.tgl_transaksi,jumlah_bayar,jasa FROM tbl_anggota AS b 
+					SELECT b.id, b.nama,b.identitas,b.departement,tarikan_simpanan_pokok,jml_pinjaman,jml_pinjaman_pokok,tarikan_simpanan_wajib,tarikan_simpanan_sukarela,simpanan_pokok,simpanan_wajib,simpanan_sukarela,v2.tgl_transaksi,jumlah_bayar,jasa,jasa_terjadwal,jasa_dibayar_kumulatif FROM tbl_anggota AS b
 
-					LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_pokok, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) BETWEEN 2018 AND '".$tahun."' AND dk='D' AND jenis_id = '40' GROUP BY anggota_id) AS v2  ) ON v2.angid = b.id 
+					LEFT JOIN (SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_pokok, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) >= 2018 AND DATE(tgl_transaksi) <= '".$tgl."' AND dk='D' AND jenis_id = '40' GROUP BY anggota_id) AS v2 ON v2.angid = b.id 
 
-					LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_wajib, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) BETWEEN 2018 AND '".$tahun."' AND dk='D' AND jenis_id = '41' GROUP BY anggota_id) AS v3  ) ON v3.angid = b.id 
-
-
-					LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_sukarela, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) BETWEEN 2018 AND '".$tahun."' AND dk='D' AND jenis_id = '32' GROUP BY anggota_id) AS v4  ) ON v4.angid = b.id 
-					
-					LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS tarikan_simpanan_pokok, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) BETWEEN 2018 AND '".$tahun."' AND dk='K' AND jenis_id = '40' GROUP BY anggota_id) AS p2  ) ON p2.angid = b.id 
-
-					LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS tarikan_simpanan_wajib, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) BETWEEN 2018 AND '".$tahun."' AND dk='K' AND jenis_id = '41' GROUP BY anggota_id) AS p3  ) ON p3.angid = b.id 
+					LEFT JOIN (SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_wajib, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) >= 2018 AND DATE(tgl_transaksi) <= '".$tgl."' AND dk='D' AND jenis_id = '41' GROUP BY anggota_id) AS v3 ON v3.angid = b.id 
 
 
-					LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS tarikan_simpanan_sukarela, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) BETWEEN 2018 AND '".$tahun."' AND dk='K' AND jenis_id = '32' GROUP BY anggota_id) AS p4  ) ON p4.angid = b.id 
+					LEFT JOIN (SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_sukarela, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) >= 2018 AND DATE(tgl_transaksi) <= '".$tgl."' AND dk='D' AND jenis_id = '32' GROUP BY anggota_id) AS v4 ON v4.angid = b.id 
 					
-					LEFT JOIN ((SELECT COALESCE(SUM(jumlah),0) AS jml_pinjaman_pokok, anggota_id AS angid FROM tbl_pinjaman_h WHERE YEAR(tgl_pinjam) = '".$tahun."' GROUP BY anggota_id) AS pinjp  ) ON pinjp.angid = b.id 
+					LEFT JOIN (SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS tarikan_simpanan_pokok, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) >= 2018 AND DATE(tgl_transaksi) <= '".$tgl."' AND dk='K' AND jenis_id = '40' GROUP BY anggota_id) AS p2 ON p2.angid = b.id 
+
+					LEFT JOIN (SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS tarikan_simpanan_wajib, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) >= 2018 AND DATE(tgl_transaksi) <= '".$tgl."' AND dk='K' AND jenis_id = '41' GROUP BY anggota_id) AS p3 ON p3.angid = b.id 
+
+
+					LEFT JOIN (SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS tarikan_simpanan_sukarela, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) >= 2018 AND DATE(tgl_transaksi) <= '".$tgl."' AND dk='K' AND jenis_id = '32' GROUP BY anggota_id) AS p4 ON p4.angid = b.id 
+					
+					LEFT JOIN (SELECT COALESCE(SUM(jumlah),0) AS jml_pinjaman_pokok, anggota_id AS angid FROM tbl_pinjaman_h WHERE YEAR(tgl_pinjam) = '".$tahun."' AND DATE(tgl_pinjam) <= '".$tgl."' GROUP BY anggota_id) AS pinjp ON pinjp.angid = b.id 
 					
 					
-					LEFT JOIN ((SELECT COALESCE(SUM(jumlah),0) AS jml_pinjaman, anggota_id AS angid FROM tbl_pinjaman_h WHERE YEAR(tgl_pinjam) BETWEEN 2018 AND '".$tahun."' GROUP BY anggota_id) AS pinj  ) ON pinj.angid = b.id 
+					LEFT JOIN (SELECT COALESCE(SUM(jumlah),0) AS jml_pinjaman, anggota_id AS angid FROM tbl_pinjaman_h WHERE YEAR(tgl_pinjam) >= 2018 AND DATE(tgl_pinjam) <= '".$tgl."' GROUP BY anggota_id) AS pinj ON pinj.angid = b.id 
 					
-					LEFT JOIN ((SELECT COALESCE(SUM(jml_pokok_angsuran),0) AS jumlah_bayar,anggota_id AS angid  FROM tbl_pinjaman_d INNER JOIN v_hitung_pinjaman ON v_hitung_pinjaman.id = tbl_pinjaman_d.pinjam_id WHERE YEAR(tgl_bayar) BETWEEN 2018 AND '".$tahun."' GROUP BY v_hitung_pinjaman.anggota_id) AS v5  ) ON v5.angid = b.id 
+					LEFT JOIN (SELECT COALESCE(SUM(jml_pokok_angsuran),0) AS jumlah_bayar,anggota_id AS angid  FROM tbl_pinjaman_d INNER JOIN v_hitung_pinjaman ON v_hitung_pinjaman.id = tbl_pinjaman_d.pinjam_id WHERE YEAR(tgl_bayar) >= 2018 AND DATE(tgl_bayar) <= '".$tgl."' GROUP BY v_hitung_pinjaman.anggota_id) AS v5 ON v5.angid = b.id 
 					
-					LEFT JOIN ((SELECT COALESCE(SUM(ROUND(jml_jasa_angsuran)),0) AS jasa,anggota_id AS angid  FROM tbl_pinjaman_d INNER JOIN v_hitung_pinjaman ON v_hitung_pinjaman.id = tbl_pinjaman_d.pinjam_id WHERE YEAR(tgl_bayar) = '".$tahun."' GROUP BY v_hitung_pinjaman.anggota_id) AS v6  ) ON v6.angid = b.id 
-					
-					ORDER BY `b`.`identitas`,`b`.departement ASC 
+					LEFT JOIN (SELECT COALESCE(SUM(ROUND(jml_jasa_angsuran)),0) AS jasa,anggota_id AS angid  FROM tbl_pinjaman_d INNER JOIN v_hitung_pinjaman ON v_hitung_pinjaman.id = tbl_pinjaman_d.pinjam_id WHERE YEAR(tgl_bayar) = '".$tahun."' AND DATE(tgl_bayar) <= '".$tgl."' GROUP BY v_hitung_pinjaman.anggota_id) AS v6 ON v6.angid = b.id
+
+					LEFT JOIN (SELECT COALESCE(SUM(ROUND(jumlah*bunga/100)),0) AS jasa_terjadwal, anggota_id AS angid FROM tbl_pinjaman_h WHERE YEAR(tgl_pinjam) >= 2018 AND DATE(tgl_pinjam) <= '".$tgl."' GROUP BY anggota_id) AS jt ON jt.angid = b.id
+
+					LEFT JOIN (SELECT COALESCE(SUM(ROUND(jml_jasa_angsuran)),0) AS jasa_dibayar_kumulatif,anggota_id AS angid  FROM tbl_pinjaman_d INNER JOIN v_hitung_pinjaman ON v_hitung_pinjaman.id = tbl_pinjaman_d.pinjam_id WHERE YEAR(tgl_bayar) >= 2018 AND DATE(tgl_bayar) <= '".$tgl."' GROUP BY v_hitung_pinjaman.anggota_id) AS jdk ON jdk.angid = b.id
+
+					ORDER BY `b`.`identitas`,`b`.departement ASC
 				";
 			
 			$pinjaman_total = $this->db->select("SUM(jumlah) AS jml_pinjaman_total")->get_where("tbl_pinjaman_h",array('YEAR(tgl_pinjam)' => $tahun))->row();
@@ -73,7 +78,7 @@ class Lap_nominatif extends OPPController {
 						'pokok' => $v2->jml_pinjaman_pokok,
 						'jumlah_bayar' => $v2->jumlah_bayar,
 						'sisa' => $pinjamans,
-						'sisa_jasa' => (isset($sisa_jasa) ? $sisa_jasa : 0 ),
+						'sisa_jasa' => ($v2->jasa_terjadwal - $v2->jasa_dibayar_kumulatif),
 						'jasa_dibayar' => $v2->jasa,
 					);				
 				}
@@ -244,7 +249,9 @@ class Lap_nominatif extends OPPController {
 	} 
 	
 	public function cetak_print(){
-		$tahun = $_GET['tahun'];
+		$tgl = (isset($_GET['tgl']) && $_GET['tgl'] != '') ? date('Y-m-d', strtotime($_GET['tgl'])) : date('Y-m-d');
+		$tahun = date('Y', strtotime($tgl));
+		$tgl_periode_txt = date('d-m-Y', strtotime($tgl));
 		$area = $this->db->get("mst_area")->result();
 		$data_area = array();
 		foreach($area AS $v){
@@ -252,31 +259,35 @@ class Lap_nominatif extends OPPController {
 			}
 			
 			$select = "
-					SELECT b.id, b.nama,b.identitas,b.departement,tarikan_simpanan_pokok,jml_pinjaman,jml_pinjaman_pokok,tarikan_simpanan_wajib,tarikan_simpanan_sukarela,simpanan_pokok,simpanan_wajib,simpanan_sukarela,v2.tgl_transaksi,jumlah_bayar,jasa FROM tbl_anggota AS b 
+					SELECT b.id, b.nama,b.identitas,b.departement,tarikan_simpanan_pokok,jml_pinjaman,jml_pinjaman_pokok,tarikan_simpanan_wajib,tarikan_simpanan_sukarela,simpanan_pokok,simpanan_wajib,simpanan_sukarela,v2.tgl_transaksi,jumlah_bayar,jasa,jasa_terjadwal,jasa_dibayar_kumulatif FROM tbl_anggota AS b
 
-					LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_pokok, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) BETWEEN 2018 AND '".$tahun."' AND dk='D' AND jenis_id = '40' GROUP BY anggota_id) AS v2  ) ON v2.angid = b.id 
+					LEFT JOIN (SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_pokok, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) >= 2018 AND DATE(tgl_transaksi) <= '".$tgl."' AND dk='D' AND jenis_id = '40' GROUP BY anggota_id) AS v2 ON v2.angid = b.id 
 
-					LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_wajib, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) BETWEEN 2018 AND '".$tahun."' AND dk='D' AND jenis_id = '41' GROUP BY anggota_id) AS v3  ) ON v3.angid = b.id 
+					LEFT JOIN (SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_wajib, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) >= 2018 AND DATE(tgl_transaksi) <= '".$tgl."' AND dk='D' AND jenis_id = '41' GROUP BY anggota_id) AS v3 ON v3.angid = b.id 
 
 
-					LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_sukarela, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) BETWEEN 2018 AND '".$tahun."' AND dk='D' AND jenis_id = '32' GROUP BY anggota_id) AS v4  ) ON v4.angid = b.id 
+					LEFT JOIN (SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_sukarela, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) >= 2018 AND DATE(tgl_transaksi) <= '".$tgl."' AND dk='D' AND jenis_id = '32' GROUP BY anggota_id) AS v4 ON v4.angid = b.id 
 					
-					LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS tarikan_simpanan_pokok, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) BETWEEN 2018 AND '".$tahun."' AND dk='K' AND jenis_id = '40' GROUP BY anggota_id) AS p2  ) ON p2.angid = b.id 
+					LEFT JOIN (SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS tarikan_simpanan_pokok, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) >= 2018 AND DATE(tgl_transaksi) <= '".$tgl."' AND dk='K' AND jenis_id = '40' GROUP BY anggota_id) AS p2 ON p2.angid = b.id 
 
-					LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS tarikan_simpanan_wajib, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) BETWEEN 2018 AND '".$tahun."' AND dk='K' AND jenis_id = '41' GROUP BY anggota_id) AS p3  ) ON p3.angid = b.id 
+					LEFT JOIN (SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS tarikan_simpanan_wajib, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) >= 2018 AND DATE(tgl_transaksi) <= '".$tgl."' AND dk='K' AND jenis_id = '41' GROUP BY anggota_id) AS p3 ON p3.angid = b.id 
 
 
-					LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS tarikan_simpanan_sukarela, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) BETWEEN 2018 AND '".$tahun."' AND dk='K' AND jenis_id = '32' GROUP BY anggota_id) AS p4  ) ON p4.angid = b.id 
+					LEFT JOIN (SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS tarikan_simpanan_sukarela, anggota_id AS angid FROM tbl_trans_sp WHERE YEAR(tgl_transaksi) >= 2018 AND DATE(tgl_transaksi) <= '".$tgl."' AND dk='K' AND jenis_id = '32' GROUP BY anggota_id) AS p4 ON p4.angid = b.id 
 					
-					LEFT JOIN ((SELECT COALESCE(SUM(jumlah),0) AS jml_pinjaman_pokok, anggota_id AS angid FROM tbl_pinjaman_h WHERE YEAR(tgl_pinjam) = '".$tahun."' GROUP BY anggota_id) AS pinjp  ) ON pinjp.angid = b.id 
+					LEFT JOIN (SELECT COALESCE(SUM(jumlah),0) AS jml_pinjaman_pokok, anggota_id AS angid FROM tbl_pinjaman_h WHERE YEAR(tgl_pinjam) = '".$tahun."' AND DATE(tgl_pinjam) <= '".$tgl."' GROUP BY anggota_id) AS pinjp ON pinjp.angid = b.id 
 					
-					LEFT JOIN ((SELECT COALESCE(SUM(jumlah),0) AS jml_pinjaman, anggota_id AS angid FROM tbl_pinjaman_h WHERE YEAR(tgl_pinjam) BETWEEN 2018 AND '".$tahun."' GROUP BY anggota_id) AS pinj  ) ON pinj.angid = b.id 
+					LEFT JOIN (SELECT COALESCE(SUM(jumlah),0) AS jml_pinjaman, anggota_id AS angid FROM tbl_pinjaman_h WHERE YEAR(tgl_pinjam) >= 2018 AND DATE(tgl_pinjam) <= '".$tgl."' GROUP BY anggota_id) AS pinj ON pinj.angid = b.id 
 					
-					LEFT JOIN ((SELECT COALESCE(SUM(jml_pokok_angsuran),0) AS jumlah_bayar,anggota_id AS angid  FROM tbl_pinjaman_d INNER JOIN v_hitung_pinjaman ON v_hitung_pinjaman.id = tbl_pinjaman_d.pinjam_id WHERE YEAR(tgl_bayar) BETWEEN 2018 AND '".$tahun."' GROUP BY v_hitung_pinjaman.anggota_id) AS v5  ) ON v5.angid = b.id 
+					LEFT JOIN (SELECT COALESCE(SUM(jml_pokok_angsuran),0) AS jumlah_bayar,anggota_id AS angid  FROM tbl_pinjaman_d INNER JOIN v_hitung_pinjaman ON v_hitung_pinjaman.id = tbl_pinjaman_d.pinjam_id WHERE YEAR(tgl_bayar) >= 2018 AND DATE(tgl_bayar) <= '".$tgl."' GROUP BY v_hitung_pinjaman.anggota_id) AS v5 ON v5.angid = b.id 
 					
-					LEFT JOIN ((SELECT COALESCE(SUM(ROUND(jml_jasa_angsuran)),0) AS jasa,anggota_id AS angid  FROM tbl_pinjaman_d INNER JOIN v_hitung_pinjaman ON v_hitung_pinjaman.id = tbl_pinjaman_d.pinjam_id WHERE YEAR(tgl_bayar) = '".$tahun."' GROUP BY v_hitung_pinjaman.anggota_id) AS v6  ) ON v6.angid = b.id 
-					
-					ORDER BY `b`.`identitas`,`b`.departement ASC 
+					LEFT JOIN (SELECT COALESCE(SUM(ROUND(jml_jasa_angsuran)),0) AS jasa,anggota_id AS angid  FROM tbl_pinjaman_d INNER JOIN v_hitung_pinjaman ON v_hitung_pinjaman.id = tbl_pinjaman_d.pinjam_id WHERE YEAR(tgl_bayar) = '".$tahun."' AND DATE(tgl_bayar) <= '".$tgl."' GROUP BY v_hitung_pinjaman.anggota_id) AS v6 ON v6.angid = b.id
+
+					LEFT JOIN (SELECT COALESCE(SUM(ROUND(jumlah*bunga/100)),0) AS jasa_terjadwal, anggota_id AS angid FROM tbl_pinjaman_h WHERE YEAR(tgl_pinjam) >= 2018 AND DATE(tgl_pinjam) <= '".$tgl."' GROUP BY anggota_id) AS jt ON jt.angid = b.id
+
+					LEFT JOIN (SELECT COALESCE(SUM(ROUND(jml_jasa_angsuran)),0) AS jasa_dibayar_kumulatif,anggota_id AS angid  FROM tbl_pinjaman_d INNER JOIN v_hitung_pinjaman ON v_hitung_pinjaman.id = tbl_pinjaman_d.pinjam_id WHERE YEAR(tgl_bayar) >= 2018 AND DATE(tgl_bayar) <= '".$tgl."' GROUP BY v_hitung_pinjaman.anggota_id) AS jdk ON jdk.angid = b.id
+
+					ORDER BY `b`.`identitas`,`b`.departement ASC
 				";
 			
 			$pinjaman_total = $this->db->select("SUM(jumlah) AS jml_pinjaman_total")->get_where("tbl_pinjaman_h",array('YEAR(tgl_pinjam)' => $tahun))->row();
@@ -305,7 +316,7 @@ class Lap_nominatif extends OPPController {
 						'pokok' => $v2->jml_pinjaman_pokok,
 						'jumlah_bayar' => $v2->jumlah_bayar,
 						'sisa' => $pinjamans,
-						'sisa_jasa' => (isset($sisa_jasa) ? $sisa_jasa : 0 ),
+						'sisa_jasa' => ($v2->jasa_terjadwal - $v2->jasa_dibayar_kumulatif),
 						'jasa_dibayar' => $v2->jasa,
 					);				
 				}
@@ -346,6 +357,7 @@ class Lap_nominatif extends OPPController {
 				<th style="width:170px; vertical-align: middle; text-align:center" colspan="4"> Simpanan  </th>
 				<th style="width:170px; vertical-align: middle; text-align:center" colspan="2"> Pinjaman  </th>
 				<th style="width:170px; vertical-align: middle; text-align:center" rowspan="2"> Jasa dibayar  </th>
+				<th style="width:170px; vertical-align: middle; text-align:center" rowspan="2"> Sisa Jasa  </th>
 			</tr>
 			<tr class="header_kolom">
 				<th style="vertical-align: middle; text-align:center" > Pokok</th>
@@ -379,14 +391,16 @@ class Lap_nominatif extends OPPController {
 				<td style="text-align:right">'.number_format($v2['pokok']).'<span style="color:white;"></span></td>
 				<td style="text-align:right">'.number_format($jml).'<span style="color:white;"></span></td>
 				<td style="text-align:right">'.number_format($v2['jasa_dibayar']).'</td>
+				<td style="text-align:right">'.number_format($v2['sisa_jasa']).'</td>
 			</tr>';
 			$subtotal_pokok += $v2['simpanan_pokok'];
 			$subtotal_wajib += $v2['simpanan_wajib'];
 			$subtotal_sukarela += $v2['simpanan_sukarela'];
-			$subtotal_pinjaman_pokok += $v2['pokok'];			
+			$subtotal_pinjaman_pokok += $v2['pokok'];
 			$subtotal_dibayar += $v2['jumlah_bayar'];
-			$subtotal_jml_simpanan += $v2['jumlah_simpanan'];			
+			$subtotal_jml_simpanan += $v2['jumlah_simpanan'];
 			$subtotal_jasa_dibayar += $v2['jasa_dibayar'];
+			$subtotal_sisa_jasa += $v2['sisa_jasa'];
 			$subtotal_sisa += $jml;
 			$no++;
 		}
@@ -401,8 +415,9 @@ class Lap_nominatif extends OPPController {
 			<th>'.number_format($subtotal_pinjaman_pokok).'</th>
 			<th>'.number_format($subtotal_sisa).'</th>
 			<th>'.number_format($subtotal_jasa_dibayar).'</th>
+			<th>'.number_format($subtotal_sisa_jasa).'</th>
 		</tr>';
-			
+
 			$total_pokok += $subtotal_pokok;
 		$total_wajib += $subtotal_wajib;
 		$total_sukarela += $subtotal_sukarela;
@@ -427,7 +442,7 @@ class Lap_nominatif extends OPPController {
 			<th>'.number_format($total_pinjaman_pokok).'</th>
 			<th>'.number_format($jumlah_subtotal).'</th>
 			<th>'.number_format($total_jasa_dibayar).'</th>
-			
+			<th>'.number_format($total_sisa_jasa).'</th>
 		</tr></table>';
 			
 
