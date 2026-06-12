@@ -93,6 +93,9 @@
 					<td>
 						<input id="hitung" name="cetak" onclick="$('form').attr('target', '_blank');" class="btn btn-info" type="submit" value="Cetak" >
 					</td>
+					<td>
+						<input name="excel" onclick="$('form').attr('target', '_self');" class="btn btn-warning" type="submit" value="Export Excel" >
+					</td>
 				</tr>
 			</table>
 

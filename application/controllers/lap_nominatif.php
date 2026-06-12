@@ -88,7 +88,11 @@ class Lap_nominatif extends OPPController {
 		if(isset($_GET['cetak'])){
 			$this->cetak_print($_GET);
 		}
-		
+
+		if(isset($_GET['excel'])){
+			$this->export_excel();
+		}
+
 		$this->data["data_hasil"] = $data;
 		
 		$this->data["data_jns_simpanan"] = $this->lap_kas_anggota_m->get_jenis_simpan(); // panggil seluruh data simpanan
@@ -248,7 +252,7 @@ class Lap_nominatif extends OPPController {
 		$pdf->Output('lap_nominatif'.date('Ymd_His') . '.pdf', 'I');
 	} 
 	
-	public function cetak_print(){
+	private function _build_html(){
 		$tgl = (isset($_GET['tgl']) && $_GET['tgl'] != '') ? date('Y-m-d', strtotime($_GET['tgl'])) : date('Y-m-d');
 		$tahun = date('Y', strtotime($tgl));
 		$tgl_periode_txt = date('d-m-Y', strtotime($tgl));
@@ -324,7 +328,7 @@ class Lap_nominatif extends OPPController {
 		$html = "<style>@page { margin-top: 30px;margin-bottom: 28px; }tr,td,th{border:1px solid black;border-collapse:collapse}table{border-collapse:collapse}";
 		$html .= "</style>";
 		$html .= "<div class='header' style='float:left'>";
-		$html .= "<img style='float:left'src='http://localhost/koperasi/assets/theme_admin/img/logo.png' width='100' height='100' alt='logo' />";
+		$html .= "<img style='float:left' src='".base_url('assets/theme_admin/img/logo.png')."' width='100' height='100' alt='logo' />";
 		$html .= "<div style='font-size:16px'><br/>KOPERASI DWP BINA SEJAHTERA</div>";
 		$html .= "<div>JL. KISAMAUN NO.1 KEL.SUKARASA</div>";
 		$html .= "<div>Tel.021-55795402 <br/>Email :</div>";
@@ -448,8 +452,23 @@ class Lap_nominatif extends OPPController {
 
 		
 		
-		echo $html;
+		return $html;
+	}
+
+	public function cetak_print(){
+		echo $this->_build_html();
 		echo "<script>window.print();</script>";
+		die();
+	}
+
+	public function export_excel(){
+		$tgl = (isset($_GET['tgl']) && $_GET['tgl'] != '') ? date('Y-m-d', strtotime($_GET['tgl'])) : date('Y-m-d');
+		$nama_file = 'laporan_nominatif_'.$tgl.'.xls';
+		header("Content-Type: application/vnd.ms-excel; charset=utf-8");
+		header("Content-Disposition: attachment; filename=\"".$nama_file."\"");
+		header("Cache-Control: max-age=0");
+		echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />';
+		echo $this->_build_html();
 		die();
 	}
 }
