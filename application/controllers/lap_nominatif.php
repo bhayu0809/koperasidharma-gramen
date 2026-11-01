@@ -252,7 +252,7 @@ class Lap_nominatif extends OPPController {
 		$pdf->Output('lap_nominatif'.date('Ymd_His') . '.pdf', 'I');
 	} 
 	
-	private function _build_html(){
+	private function _build_html($with_logo = true){
 		$tgl = (isset($_GET['tgl']) && $_GET['tgl'] != '') ? date('Y-m-d', strtotime($_GET['tgl'])) : date('Y-m-d');
 		$tahun = date('Y', strtotime($tgl));
 		$tgl_periode_txt = date('d-m-Y', strtotime($tgl));
@@ -328,7 +328,9 @@ class Lap_nominatif extends OPPController {
 		$html = "<style>@page { margin-top: 30px;margin-bottom: 28px; }tr,td,th{border:1px solid black;border-collapse:collapse}table{border-collapse:collapse}";
 		$html .= "</style>";
 		$html .= "<div class='header' style='float:left'>";
-		$html .= "<img style='float:left' src='".base_url('assets/theme_admin/img/logo.png')."' width='100' height='100' alt='logo' />";
+		if($with_logo){
+			$html .= "<img style='float:left' src='".base_url('assets/theme_admin/img/logo.png')."' width='100' height='100' alt='logo' />";
+		}
 		$html .= "<div style='font-size:16px'><br/>KOPERASI DWP BINA SEJAHTERA</div>";
 		$html .= "<div>JL. KISAMAUN NO.1 KEL.SUKARASA</div>";
 		$html .= "<div>Tel.021-55795402 <br/>Email :</div>";
@@ -468,7 +470,7 @@ class Lap_nominatif extends OPPController {
 		header("Content-Disposition: attachment; filename=\"".$nama_file."\"");
 		header("Cache-Control: max-age=0");
 		echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />';
-		echo $this->_build_html();
+		echo $this->_build_html(false);
 		die();
 	}
 }
