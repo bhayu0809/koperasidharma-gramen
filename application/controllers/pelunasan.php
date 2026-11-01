@@ -107,7 +107,7 @@ class Pelunasan extends OperatorController {
 			$rows[$i]['departement'] = $anggota->departement;
 			$rows[$i]['tgl_pinjam_txt'] = $txt_tanggal;
 			$rows[$i]['tgl_tempo_txt'] = $tgl_tempo;
-			$rows[$i]['lama_angsuran_txt'] = $r->lama_angsuran.' Minggu';
+			$rows[$i]['lama_angsuran_txt'] = $r->lama_angsuran.' '.satuan_angsuran($r->lama_angsuran, $r->satuan);
 			$rows[$i]['pinjaman'] = number_format(nsi_round($r->tagihan));
 			$rows[$i]['tagihan'] = number_format(nsi_round($total_tagihan));
 			$rows[$i]['denda'] = number_format(nsi_round($jml_denda->total_denda)); // denda

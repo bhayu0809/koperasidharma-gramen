@@ -98,7 +98,7 @@ function cetak($id) {
                <tr>
                    <td> Lama Pinjam </td>
                    <td> :</td>
-                   <td> '.$pinjaman->lama_angsuran.' Minggu</td>
+                   <td> '.$pinjaman->lama_angsuran.' '.satuan_angsuran($pinjaman->lama_angsuran, $pinjaman->satuan).'</td>
                </tr>
                <tr>
                    <td> Pokok Pinjaman </td>

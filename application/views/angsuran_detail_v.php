@@ -53,11 +53,7 @@ echo '<a href="'.site_url().'/pinjaman" class="btn btn-sm btn-danger" title="Kem
 ;
 	echo ' <a href="'.site_url('angsuran_lunas').'/index/'.$row_pinjam->id.'" class="btn btn-sm btn-success"><i class="fa fa-check-square-o"></i> Validasi Lunas</a>';
 	
-if(in_array($row_pinjam->lama_angsuran,array("20","40"))){
-	$satuan = "Minggu";
-}else{
-	$satuan = "Bulan";
-}
+$satuan = satuan_angsuran($row_pinjam->lama_angsuran, $row_pinjam->satuan);
 ?>
 <p></p>
 <!-- detail data anggota -->

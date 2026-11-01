@@ -140,7 +140,7 @@
 					<tr>
 						<td> Lama Pinjaman</td> 
 						<td> : </td>
-						<td> <?php echo $row_pinjam->lama_angsuran; ?> Minggu</span></td>
+						<td> <?php echo $row_pinjam->lama_angsuran . ' ' . satuan_angsuran($row_pinjam->lama_angsuran, $row_pinjam->satuan); ?></span></td>
 					</tr>
 					</table>
 				</td>

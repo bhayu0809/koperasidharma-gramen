@@ -165,11 +165,12 @@ striped="true">
 							<td>Lama Angsuran</td>
 							<td>:</td>
 							<td>
+								<input type="hidden" name="satuan" id="satuan" value="">
 								<select id="lama_angsuran" name="lama_angsuran" style="width:200px; height:23px" class="easyui-validatebox" required="true">
 									<option value="0"> -- Pilih Angsuran --</option>			
 									<?php	
 									foreach ($jenis_ags as $row) {
-										echo '<option value="'.$row->ket.'">'.$row->ket.' '.$row->satuan.'</option>';
+										echo '<option value="'.$row->ket.'" data-satuan="'.$row->satuan.'">'.$row->ket.' '.$row->satuan.'</option>';
 									}
 									?>
 								</select>
@@ -352,7 +353,13 @@ function create(){
 	jQuery('#biaya_adm_txt').val('<?php echo number_format($biaya_adm);?>');
 	jQuery('#kas option[value="0"]').prop('selected', true);
 	jQuery('#lama_angsuran option[value="0"]').prop('selected', true);
+	jQuery('#satuan').val('');
 	$("#anggota_poto").html('');
+
+	$('#lama_angsuran').off('change.satuan').on('change.satuan', function() {
+		var sat = $(this).find('option:selected').data('satuan');
+		$('#satuan').val(sat || '');
+	});
 
 	$('#jumlah').keyup(function(){
 		var val_jumlah = $(this).val();
@@ -461,6 +468,20 @@ function update(){
 	if(row){
 		jQuery('#dialog-form').dialog('open').dialog('setTitle','Edit Data Pinjaman');
 		jQuery('#form').form('load',row);
+		if(row.satuan) {
+			$('#lama_angsuran option').filter(function() {
+				return $(this).val() == row.lama_angsuran && $(this).data('satuan') == row.satuan;
+			}).prop('selected', true);
+			$('#satuan').val(row.satuan);
+		} else {
+			var sat = $('#lama_angsuran option:selected').data('satuan');
+			$('#satuan').val(sat || '');
+		}
+
+		$('#lama_angsuran').off('change.satuan').on('change.satuan', function() {
+			var sat = $(this).find('option:selected').data('satuan');
+			$('#satuan').val(sat || '');
+		});
 
 		$('#anggota_id ~ span input').attr('disabled', true);
 		$('#anggota_id ~ span input').css('background-color', '#fff');

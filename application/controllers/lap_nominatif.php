@@ -351,6 +351,11 @@ class Lap_nominatif extends OPPController {
 	$total_cicilan = 0;
 	$total_jasa = 0;
 	$total_jml_simpanan = 0;
+	$total_pinjaman_pokok = 0;
+	$total_dibayar = 0;
+	$jumlah_subtotal = 0;
+	$total_jasa_dibayar = 0;
+	$total_sisa_jasa = 0;
 	$html .= '<table>';
 	foreach($data AS $k=>$v){
 		$html .= '<tr style="border:none"><td style="border:none;vertical-align:bottom" colspan="5"><br/><h5> Area :'.ucwords(strtolower($k)).' </h5></td></tr>';
@@ -377,6 +382,8 @@ class Lap_nominatif extends OPPController {
 		$subtotal_pokok = 0;
 		$subtotal_wajib = 0;
 		$subtotal_sukarela = 0;
+		$subtotal_pinjaman_pokok = 0;
+		$subtotal_dibayar = 0;
 		$subtotal_cicilan = 0;
 		$subtotal_jasa = 0;
 		$subtotal_sisa = 0;
@@ -424,12 +431,12 @@ class Lap_nominatif extends OPPController {
 			<th>'.number_format($subtotal_sisa_jasa).'</th>
 		</tr>';
 
-			$total_pokok += $subtotal_pokok;
+		$total_pokok += $subtotal_pokok;
 		$total_wajib += $subtotal_wajib;
 		$total_sukarela += $subtotal_sukarela;
 		$total_jml_simpanan += $subtotal_jml_simpanan;
-		$total_pinjaman_pokok = $subtotal_pinjaman_pokok;
-		$total_dibayar = $subtotal_dibayar;
+		$total_pinjaman_pokok += $subtotal_pinjaman_pokok;
+		$total_dibayar += $subtotal_dibayar;
 		$jumlah_subtotal += $subtotal_sisa;
 
 		$total_jasa_dibayar += $subtotal_jasa_dibayar;

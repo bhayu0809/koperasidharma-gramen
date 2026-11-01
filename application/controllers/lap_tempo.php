@@ -146,7 +146,7 @@ public function __construct() {
 					<td> '.$anggota->identitas.'<br> '.$anggota->nama.'</td>
 					<td class="h_tengah"> '.$tgl_pinjam.'</td>
 					<td class="h_tengah"> '.$tgl_tempo.'</td>
-					<td class="h_tengah"> '.$rows->lama_angsuran.' bln</td>
+					<td class="h_tengah"> '.$rows->lama_angsuran.' '.satuan_angsuran($rows->lama_angsuran, $rows->satuan).'</td>
 					<td class="h_kanan"> '.number_format(nsi_round($total_tagihan)).'</td>
 					<td class="h_kanan"> '.number_format(nsi_round($jml_bayar->total)).'</td>
 					<td class="h_kanan"> '.number_format(nsi_round($sisa_tagihan)).'</td>

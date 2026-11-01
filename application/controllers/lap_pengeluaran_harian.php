@@ -117,6 +117,10 @@ class Lap_pengeluaran_harian extends OperatorController {
 		if(isset($_GET['cetak'])){
 			$this->cetak_print($_GET);
 		}		
+
+		if(isset($_GET['excel'])){
+			$this->export_excel();
+		}
 		$this->data["data_hasil"] = $data;
 		
 		$this->data['isi'] = $this->load->view('lap_pengeluaran_list_v', $this->data, TRUE);
@@ -328,61 +332,49 @@ class Lap_pengeluaran_harian extends OperatorController {
 		$pdf->Output('lap_pengeluaran_harian'.date('Ymd_His') . '.pdf', 'I');
 	}
 	
-	function cetak_print() {
-		$simpanan = $this->lap_simpanan_m->lap_jenis_simpan();
-		$tgl_mulai = date("Y-m-d",strtotime($_GET['tgl_mulai']));
+	private function _build_html($with_logo = true) {
+		$tgl_mulai = (isset($_GET['tgl_mulai']) && $_GET['tgl_mulai'] != '') ? date("Y-m-d",strtotime($_GET['tgl_mulai'])) : date("Y-m-d");
 			
-		if($simpanan == FALSE) {
-			echo 'DATA KOSONG';
-			//redirect('lap_simpanan');
-			exit();
+		$area = $this->db->get("mst_area")->result();
+		$data_area = array();
+		foreach($area AS $v){
+			$data_area[$v->nama_area] = $v->nama_area;
 		}
+		$select = "
+				SELECT b.id, b.nama,b.identitas,b.departement,simpanan_pokok,simpanan_wajib,simpanan_sukarela,jumlah FROM tbl_anggota AS b 
 
+				LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_pokok, anggota_id AS angid FROM tbl_trans_sp WHERE DATE(tgl_transaksi) = '".$tgl_mulai."' AND jenis_id = '40' AND dk = 'K'
+				GROUP BY anggota_id) AS v2  ) ON v2.angid = b.id 
+
+				LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_wajib, anggota_id AS angid FROM tbl_trans_sp WHERE DATE(tgl_transaksi) = '".$tgl_mulai."' AND jenis_id = '41' AND dk = 'K' GROUP BY anggota_id) AS v3  ) ON v3.angid = b.id 
+
+
+				LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_sukarela, anggota_id AS angid FROM tbl_trans_sp WHERE DATE(tgl_transaksi) = '".$tgl_mulai."' AND dk = 'K' AND jenis_id = '32' GROUP BY anggota_id) AS v4  ) ON v4.angid = b.id 
+				
+				LEFT JOIN ((SELECT tgl_pinjam,COALESCE(SUM(jumlah),0) AS jumlah, anggota_id AS angid FROM tbl_pinjaman_h WHERE DATE(tgl_pinjam) = '".$tgl_mulai."' GROUP BY anggota_id) AS v5  ) ON v5.angid = b.id 
+				
+				
+				WHERE simpanan_pokok > 0 OR simpanan_wajib > 0 OR simpanan_sukarela > 0  OR jumlah > 0
+				ORDER BY `b`.`identitas` ASC 
+			";
+		$pasiens = $this->db->query($select)->result();
 		
-			
-			$area = $this->db->get("mst_area")->result();
-			$data_area = array();
-			foreach($area AS $v){
-				$data_area[$v->nama_area] = $v->nama_area;
-			}
-			$select = "
-					SELECT b.id, b.nama,b.identitas,b.departement,simpanan_pokok,simpanan_wajib,simpanan_sukarela,jumlah FROM tbl_anggota AS b 
-
-					LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_pokok, anggota_id AS angid FROM tbl_trans_sp WHERE DATE(tgl_transaksi) = '".$tgl_mulai."' AND jenis_id = '40' AND dk = 'K'
-					GROUP BY anggota_id) AS v2  ) ON v2.angid = b.id 
-
-					LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_wajib, anggota_id AS angid FROM tbl_trans_sp WHERE DATE(tgl_transaksi) = '".$tgl_mulai."' AND jenis_id = '41' AND dk = 'K' GROUP BY anggota_id) AS v3  ) ON v3.angid = b.id 
-
-
-					LEFT JOIN ((SELECT tgl_transaksi,COALESCE(SUM(jumlah),0) AS simpanan_sukarela, anggota_id AS angid FROM tbl_trans_sp WHERE DATE(tgl_transaksi) = '".$tgl_mulai."' AND dk = 'K' AND jenis_id = '32' GROUP BY anggota_id) AS v4  ) ON v4.angid = b.id 
-					
-					LEFT JOIN ((SELECT tgl_pinjam,COALESCE(SUM(jumlah),0) AS jumlah, anggota_id AS angid FROM tbl_pinjaman_h WHERE DATE(tgl_pinjam) = '".$tgl_mulai."' GROUP BY anggota_id) AS v5  ) ON v5.angid = b.id 
-					
-					
-					WHERE simpanan_pokok > 0 OR simpanan_wajib > 0 OR simpanan_sukarela > 0  OR jumlah > 0
-					ORDER BY `b`.`identitas` ASC 
-				";
-			$pasiens = $this->db->query($select)->result();
-			
-			$data_hasil = array();
-			foreach($pasiens AS $v2){
-				if(isset($data_area[$v2->departement])){
-					if(isset($data_area[$v2->departement])){
-						$data_hasil[$v2->departement][] = array(
-							'nama_anggota' => $v2->nama,
-							'identitas' => $v2->identitas,
-							'simpanan_pokok' => $v2->simpanan_pokok,
-							'simpanan_wajib' => $v2->simpanan_wajib,
-							'simpanan_sukarela' => $v2->simpanan_sukarela,
-							'pinjaman' => $v2->jumlah,
-						);
-					}									
-				}				
-			}
+		$data_hasil = array();
+		foreach($pasiens AS $v2){
+			if(isset($data_area[$v2->departement])){
+				$data_hasil[$v2->departement][] = array(
+					'nama_anggota' => $v2->nama,
+					'identitas' => $v2->identitas,
+					'simpanan_pokok' => $v2->simpanan_pokok,
+					'simpanan_wajib' => $v2->simpanan_wajib,
+					'simpanan_sukarela' => $v2->simpanan_sukarela,
+					'pinjaman' => $v2->jumlah,
+				);
+			}				
+		}
 		$tgl_dari_txt = jin_date_ina($tgl_mulai, 'p');
 		$tgl_periode_txt = $tgl_dari_txt;
 
-	
 		$html = "<style>@page { margin-top: 30px;margin-bottom: 28px; }tr,td,th{border:1px solid black;border-collapse:collapse}table{border-collapse:collapse}";
 		$html .= "
 			table { page-break-after:auto }
@@ -392,7 +384,9 @@ class Lap_pengeluaran_harian extends OperatorController {
 			tfoot { display:table-footer-group }";
 		$html .= "</style>";
 		$html .= "<div class='header' style='float:left'>";
-		$html .= "<img style='float:left'src='".base_url()."assets/theme_admin/img/logo.png' width='100' height='100' alt='logo' />";
+		if($with_logo){
+			$html .= "<img style='float:left'src='".base_url('assets/theme_admin/img/logo.png')."' width='100' height='100' alt='logo' />";
+		}
 		$html .= "<div style='font-size:16px'><br/>KOPERASI DWP BINA SEJAHTERA</div>";
 		$html .= "<div>JL. KISAMAUN NO.1 KEL.SUKARASA</div>";
 		$html .= "<div>Tel.021-55795402 <br/>Email :</div>";
@@ -442,7 +436,6 @@ class Lap_pengeluaran_harian extends OperatorController {
 					<td style="text-align:right;padding-right:7px">'.number_format($v2['simpanan_wajib']).'</td>
 					<td style="text-align:right;padding-right:7px">'.number_format($v2['simpanan_sukarela']).'</td>
 					<td style="text-align:right;padding-right:7px">'.number_format($v2['pinjaman']).'</td>
-					
 				</tr>';
 				$subtotal_pokok += $v2['simpanan_pokok'];
 				$subtotal_wajib += $v2['simpanan_wajib'];
@@ -459,7 +452,6 @@ class Lap_pengeluaran_harian extends OperatorController {
 				<td style="text-align:right;padding-right:7px">'.number_format($subtotal_wajib).'</td>
 				<td style="text-align:right;padding-right:7px">'.number_format($subtotal_sukarela).'</td>
 				<td style="text-align:right;padding-right:7px">'.number_format($subtotal_pinjaman).'</td>
-			
 			</tr>';
 			
 			$total_pokok += $subtotal_pokok;
@@ -476,13 +468,27 @@ class Lap_pengeluaran_harian extends OperatorController {
 			<td style="text-align:right;padding-right:7px">'.number_format($total_wajib).'</td>
 			<td style="text-align:right;padding-right:7px">'.number_format($total_sukarela).'</td>
 			<td style="text-align:right;padding-right:7px">'.number_format($total_pinjaman).'</td>
-			
 		</tr>';
 		$html .= '</table>';
 		
-		
-		echo $html;
+		return $html;
+	}
+
+	public function cetak_print() {
+		echo $this->_build_html(true);
 		echo "<script>window.print();</script>";
+		die();
+	}
+
+	public function export_excel() {
+		$tgl_mulai = (isset($_GET['tgl_mulai']) && $_GET['tgl_mulai'] != '') ? date("Y-m-d", strtotime($_GET['tgl_mulai'])) : date("Y-m-d");
+		$nama_file = 'laporan_transaksi_harian_pengeluaran_' . $tgl_mulai . '.xls';
+		header("Content-Type: application/vnd.ms-excel; charset=utf-8");
+		header("Content-Disposition: attachment; filename=\"" . $nama_file . "\"");
+		header("Cache-Control: max-age=0");
+		header("Pragma: no-cache");
+		echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />';
+		echo $this->_build_html(false);
 		die();
 	}
 }

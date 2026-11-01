@@ -94,7 +94,7 @@ class Bayar extends OperatorController {
 			//$rows[$i]['anggota_id'] ='AG' . sprintf('%04d', $r->anggota_id) . '';
 			$rows[$i]['anggota_id'] = $anggota->identitas;
 			$rows[$i]['anggota_id_txt'] = $anggota->nama.' - '.$anggota->departement;
-			$rows[$i]['lama_angsuran_txt'] = $r->lama_angsuran.' Minggu';
+			$rows[$i]['lama_angsuran_txt'] = $r->lama_angsuran.' '.satuan_angsuran($r->lama_angsuran, $r->satuan);
 			$rows[$i]['jumlah'] = number_format($r->jumlah);
 			$rows[$i]['ags_pokok'] = number_format($r->pokok_angsuran);
 			$rows[$i]['bunga'] = number_format($r->bunga_pinjaman);

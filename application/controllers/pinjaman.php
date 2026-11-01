@@ -170,8 +170,12 @@ class Pinjaman extends OperatorController {
 			//$rows[$i]['anggota_id_txt'] ='AG' . sprintf('%04d', $r->anggota_id).' <br>'.$anggota->nama;
 			$rows[$i]['anggota_id_txt'] = $anggota->identitas.' <br>'.$anggota->nama.' <br>'.$anggota->departement;
 			$rows[$i]['barang_id'] = $r->barang_id;
+			$satuan = satuan_angsuran($r->lama_angsuran, $r->satuan);
+			$dateadd = ($satuan == "Bulan") ? "month" : "week";
+
 			$rows[$i]['lama_angsuran'] = $r->lama_angsuran;
-			$rows[$i]['lama_angsuran_txt'] = $r->lama_angsuran.' Bulan';
+			$rows[$i]['satuan'] = $satuan;
+			$rows[$i]['lama_angsuran_txt'] = $r->lama_angsuran.' '.$satuan;
 			$rows[$i]['bunga'] = $r->bunga;
 			$rows[$i]['bunga_txt'] = $r->bunga;
 			$rows[$i]['biaya_adm'] = $r->biaya_adm;
@@ -179,13 +183,6 @@ class Pinjaman extends OperatorController {
 			$rows[$i]['color_late'] = "style='background:red'";
 			$rows[$i]['jumlah'] = number_format(nsi_round($r->jumlah));
 			
-			if(in_array($r->lama_angsuran,array(5,10,15))){
-				$satuan = "Bulan";
-				$dateadd = "month";
-			}else{
-				$satuan =  "Minggu";
-				$dateadd = "week";
-			}
 			$date=date_create($r->tgl_pinjam);
 			date_add($date,date_interval_create_from_date_string($r->lama_angsuran." ".$dateadd));
 			$tanggal_tempo = date_format($date,"Y-m-d");

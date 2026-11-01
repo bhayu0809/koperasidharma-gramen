@@ -136,13 +136,8 @@ $sisa_pokok = $row_pinjam->jumlah - $hitung_dibayar->pokok_dibayar;
 					</tr>
 					<?php
 							
-							if(in_array($row_pinjam->lama_angsuran,array(5,10,15))){
-								$satuan = "Bulan";
-								$dateadd = "month";
-							}else{
-								$satuan =  "Minggu";
-								$dateadd = "week";
-							}
+							$satuan = satuan_angsuran($row_pinjam->lama_angsuran, $row_pinjam->satuan);
+							$dateadd = ($satuan == "Bulan") ? "month" : "week";
 							$date=date_create($row_pinjam->tgl_pinjam);
 							date_add($date,date_interval_create_from_date_string($row_pinjam->lama_angsuran." ".$dateadd));
 							$tanggal_tempo = date_format($date,"Y-m-d");

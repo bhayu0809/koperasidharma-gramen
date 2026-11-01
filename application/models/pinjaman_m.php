@@ -393,6 +393,7 @@ class Pinjaman_m extends CI_Model {
 		$this->db->from('jns_angsuran');
 		$this->db->where('aktif', 'Y');
 		$this->db->order_by('ket', 'ASC');
+		$this->db->order_by('satuan', 'ASC'); // 20 Bulan tampil sebelum 20 Minggu
 		$query = $this->db->get();
 		if($query->num_rows()>0){
 			$out = $query->result();
@@ -653,11 +654,15 @@ class Pinjaman_m extends CI_Model {
 		$this->db->set('jml_brg', 'jml_brg - 1', FALSE);
 		$this->db->update('tbl_barang');
 
-		$data = array(			
+		$this->load->helper('fungsi');
+		$satuan = satuan_angsuran($this->input->post('lama_angsuran'), $this->input->post('satuan'));
+
+		$data = array(
 			'tgl_pinjam'			=>	date('Y-m-d',strtotime($this->input->post('tgl_pinjam'))),
 			'anggota_id'			=>	$this->input->post('anggota_id'),
 			'barang_id'				=>	$this->input->post('barang_id'),
 			'lama_angsuran'			=>	$this->input->post('lama_angsuran'),
+			'satuan'				=>	$satuan,
 			'jumlah'				=>	str_replace(',', '', $this->input->post('jumlah')),
 			'bunga'					=>	$this->input->post('bunga'),
 			'biaya_adm'				=>	str_replace(',', '', $this->input->post('biaya_adm')),
@@ -687,11 +692,15 @@ class Pinjaman_m extends CI_Model {
 			return FALSE;
 		}
 
-		$tanggal_u = date('Y-m-d H:i');
+		$this->load->helper('fungsi');
+		$satuan = satuan_angsuran($this->input->post('lama_angsuran'), $this->input->post('satuan'));
+
+		$tanggal_u =date('Y-m-d H:i');
 		$this->db->where('id', $id);
 		return $this->db->update('tbl_pinjaman_h',array(
 			'tgl_pinjam'			=>	date('Y-m-d',strtotime($this->input->post('tgl_pinjam'))),
 			'lama_angsuran'		=>	$this->input->post('lama_angsuran'),
+			'satuan'				=>	$satuan,
 			'jumlah'					=>	str_replace(',', '', $this->input->post('jumlah')),
 			'jasa'					=>	str_replace(',', '', $this->input->post('jasa')),
 			'pokok'					=>	str_replace(',', '', $this->input->post('pokok')),

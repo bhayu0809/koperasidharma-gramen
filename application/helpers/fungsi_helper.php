@@ -41,6 +41,18 @@ if (!function_exists('jin_nama_bulan')) {
 	}
 }
 
+if (!function_exists('satuan_angsuran')) {
+	// Satuan lama angsuran ("Bulan" / "Minggu").
+	// Pakai kolom satuan dari pinjaman bila terisi; kalau kosong (data lama)
+	// pakai aturan lama: 5/10/15 = Bulan, selain itu Minggu.
+	function satuan_angsuran($lama_angsuran, $satuan = NULL) {
+		if ($satuan === 'Bulan' || $satuan === 'Minggu') {
+			return $satuan;
+		}
+		return in_array((int) $lama_angsuran, array(5, 10, 15)) ? 'Bulan' : 'Minggu';
+	}
+}
+
 if (!function_exists('nsi_round')) {
 	function nsi_round($x) {
 		//$x = ceil($x / 100) * 100;

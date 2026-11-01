@@ -164,7 +164,7 @@ class Lap_pinjaman extends AdminController {
 						<tr>
 							<td> Lama Pinjaman</td>
 							<td>:</td>
-							<td class="h_kiri">'.number_format(@$r->lama_angsuran).' Minggu</td>
+							<td class="h_kiri">'.number_format(@$r->lama_angsuran).' '.satuan_angsuran(@$r->lama_angsuran, @$r->satuan).'</td>
 						</tr>
 						<tr>
 							<td> Status Lunas</td>

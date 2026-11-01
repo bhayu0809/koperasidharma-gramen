@@ -77,6 +77,9 @@ class Lap_bulanan_pengeluaran extends OPPController {
 		if(isset($_GET['cetak'])){
 			$this->cetak_print();
 		}
+		if(isset($_GET['excel'])){
+			$this->export_excel();
+		}
 		$this->data["hasil"] = $hasil;
 		$this->data["isi"] = $this->load->view('lap_bulanan_pengeluaran_v', $this->data,TRUE);
 	
@@ -213,60 +216,66 @@ class Lap_bulanan_pengeluaran extends OPPController {
 		$pdf->Output('lap_nominatif'.date('Ymd_His') . '.pdf', 'I');
 	}
 
-	public function cetak_print(){
-		$bulan = $_GET["bulan"];
-			$tahun = $_GET["tahun"];
-			$days=cal_days_in_month(CAL_GREGORIAN,(int)$bulan,$tahun);
-			$hasil = array();
-			if($days > 0){
-				for($i=1;$i<=$days;$i++){
-					$tgl = $tahun."-".$bulan."-".$i;
+	private function _build_html($with_logo = true) {
+		$bulan = isset($_GET["bulan"]) ? $_GET["bulan"] : date("m");
+		$tahun = isset($_GET["tahun"]) ? $_GET["tahun"] : date("Y");
+		$days = cal_days_in_month(CAL_GREGORIAN, (int)$bulan, $tahun);
+		$hasil = array();
+		if($days > 0){
+			for($i=1; $i<=$days; $i++){
+				$tgl = $tahun."-".$bulan."-".$i;
+				
+				$simpanan_pokok = $this->db->select("SUM(jumlah) AS simpanan_pokok")
+					->where('d.dk', 'K')
+					->where('d.jenis_id', '40')
+					->where('DATE(tgl_transaksi)', $tgl)
+					->get("tbl_trans_sp d")	
+					->row();
 					
-					$simpanan_pokok= $this->db->select("SUM(jumlah) AS simpanan_pokok")
-						->where('d.dk', 'K')
-						->where('d.jenis_id', '40')
-						->where('DATE(tgl_transaksi)', $tgl)
-						->get("tbl_trans_sp d")	
-						->row();
+				$simpanan_wajib = $this->db->select("SUM(jumlah) AS simpanan_pokok")
+					->where('d.dk', 'K')
+					->where('d.jenis_id', '41')
+					->where('DATE(tgl_transaksi)', $tgl)
+					->get("tbl_trans_sp d")	
+					->row();
+					
+				$simpanan_sukarela = $this->db->select("SUM(jumlah) AS simpanan_pokok")
+					->where('d.dk', 'K')
+					->where('d.jenis_id', '32')
+					->where('DATE(tgl_transaksi)', $tgl)
+					->get("tbl_trans_sp d")	
+					->row();
+				
+				$pinjaman = $this->db->select("SUM(jumlah) AS jml_pokok_pinjaman,SUM(total_bunga_pinjaman) AS total_pokok_jasa")
+					->where('DATE(tgl_pinjam)', $tgl)
+					->get("v_hitung_pinjaman d")	
+					->row();
 						
-					$simpanan_wajib= $this->db->select("SUM(jumlah) AS simpanan_pokok")
-						->where('d.dk', 'K')
-						->where('d.jenis_id', '41')
-						->where('DATE(tgl_transaksi)', $tgl)
-						->get("tbl_trans_sp d")	
-						->row();
-						
-					$simpanan_sukarela= $this->db->select("SUM(jumlah) AS simpanan_pokok")
-						->where('d.dk', 'K')
-						->where('d.jenis_id', '32')
-						->where('DATE(tgl_transaksi)', $tgl)
-						->get("tbl_trans_sp d")	
-						->row();
-					
-					$pinjaman= $this->db->select("SUM(jumlah) AS jml_pokok_pinjaman,SUM(total_bunga_pinjaman) AS total_pokok_jasa")
-						->where('DATE(tgl_pinjam)', $tgl)
-						->get("v_hitung_pinjaman d")	
-						->row();
-							
-					$jml_pinjaman = $pinjaman->jml_pokok_pinjaman;
-					$total_jasa_pokok = $pinjaman->total_pokok_jasa;
-										
-					$simpanan_total = $simpanan_pokok->simpanan_pokok + $simpanan_wajib->simpanan_pokok + $simpanan_sukarela->simpanan_pokok;
-					
-					
-					$hasil[] = array(
-						"day" => $i,
-						"simpanan_pokok" => $simpanan_pokok->simpanan_pokok,
-						"simpanan_wajib" => $simpanan_wajib->simpanan_pokok,
-						"simpanan_sukarela" => $simpanan_sukarela->simpanan_pokok,
-						"simpanan_total" => $simpanan_total,
-						"pinjaman_pokok" => $jml_pinjaman,
-						"jasa_pokok" => $total_jasa_pokok
-					); 	
-				}
+				$jml_pinjaman = $pinjaman->jml_pokok_pinjaman;
+				$total_jasa_pokok = $pinjaman->total_pokok_jasa;
+									
+				$simpanan_total = $simpanan_pokok->simpanan_pokok + $simpanan_wajib->simpanan_pokok + $simpanan_sukarela->simpanan_pokok;
+				
+				$hasil[] = array(
+					"day" => $i,
+					"simpanan_pokok" => $simpanan_pokok->simpanan_pokok,
+					"simpanan_wajib" => $simpanan_wajib->simpanan_pokok,
+					"simpanan_sukarela" => $simpanan_sukarela->simpanan_pokok,
+					"simpanan_total" => $simpanan_total,
+					"pinjaman_pokok" => $jml_pinjaman,
+					"jasa_pokok" => $total_jasa_pokok
+				); 	
 			}
-		$bulanarray=array("01"=>"Januari","02"=>"Februari","03"=>"Maret","04"=>"April","05"=>"Mei","06"=>"Juni","07"=>"Juli","08"=>"Agustus","09"=>"September","10"=>"Oktober","11"=>"November","12"=>"Desember");
-	
+		}
+		$bulanarray = array("01"=>"Januari","02"=>"Februari","03"=>"Maret","04"=>"April","05"=>"Mei","06"=>"Juni","07"=>"Juli","08"=>"Agustus","09"=>"September","10"=>"Oktober","11"=>"November","12"=>"Desember");
+
+		$total_pokok = 0;
+		$total_wajib = 0;
+		$total_sukarela = 0;
+		$total_total = 0;
+		$total_pinjaman_pokok = 0;
+		$total_jasa_pokok = 0;
+
 		$html = "<style>@page { margin-top: 0;margin-bottom: 0; }table,tr,td,th{border:1px solid black;border-collapse:collapse}";
 		$html .= "
 			table { page-break-after:auto }
@@ -276,54 +285,54 @@ class Lap_bulanan_pengeluaran extends OPPController {
 			tfoot { display:table-footer-group }";
 		$html .= "</style>";
 		$html .= "<div class='header' style='float:left'>";
-		$html .= "<img style='float:left'src='".base_url()."assets/theme_admin/img/logo.png' width='100' height='100' alt='logo' />";
+		if ($with_logo) {
+			$html .= "<img style='float:left' src='".base_url('assets/theme_admin/img/logo.png')."' width='100' height='100' alt='logo' />";
+		}
 		$html .= "<div style='font-size:16px'><br/>KOPERASI DWP BINA SEJAHTERA</div>";
 		$html .= "<div>JL. KISAMAUN NO.1 KEL.SUKARASA</div>";
 		$html .= "<div>Tel.021-55795402 <br/>Email :</div>";
-		$html .= "<div/>";
+		$html .= "</div>";
 		$html .= "<div style='clear:both'></div>";
 		$html .= "<hr/>";
-		
+
 		$html .= "<center><h2>LAPORAN RINGKAS BULAN</h2><h4>(Pengeluaran)</h4>";
-		$html .= "<h4>Perbulan ".$bulanarray[$bulan]." ".$tahun ."</h4></center>";
+		$html .= "<h4>Perbulan ".(isset($bulanarray[$bulan]) ? $bulanarray[$bulan] : $bulan)." ".$tahun ."</h4></center>";
 		
 		$html .= '<table style="font-size:10pt;width:700px;">
 			<tr class="header_kolom">
-				<th style="width:50px; -web-kit-background-color:#eeeeee; vertical-align: middle; text-align:center" rowspan="2" > Tanggal. </th>
-				<th style="width:170px; vertical-align: middle; text-align:center" colspan="4"> Simpanan  </th>
-				<th style="width:170px; vertical-align: middle; text-align:center" rowspan="2"> Pinjaman  </th>
-				<th style="width:170px; vertical-align: middle; text-align:center" rowspan="2"> Jasa  </th>
+				<th style="width:50px; background-color:#eeeeee; vertical-align: middle; text-align:center" rowspan="2" > Tanggal. </th>
+				<th style="width:170px; background-color:#eeeeee; vertical-align: middle; text-align:center" colspan="4"> Simpanan  </th>
+				<th style="width:170px; background-color:#eeeeee; vertical-align: middle; text-align:center" rowspan="2"> Pinjaman  </th>
+				<th style="width:170px; background-color:#eeeeee; vertical-align: middle; text-align:center" rowspan="2"> Jasa  </th>
 			</tr>
 			<tr class="header_kolom">
-				<th style="vertical-align: middle; text-align:center">Pokok </th>
-				<th style="vertical-align: middle; text-align:center" > Wajib</th>			
-				<th style="vertical-align: middle; text-align:center"> Sukarela  </th>
-				<th style="vertical-align: middle; text-align:center"> Jumlah  </th>
-				
+				<th style="background-color:#eeeeee; vertical-align: middle; text-align:center">Pokok </th>
+				<th style="background-color:#eeeeee; vertical-align: middle; text-align:center" > Wajib</th>			
+				<th style="background-color:#eeeeee; vertical-align: middle; text-align:center"> Sukarela  </th>
+				<th style="background-color:#eeeeee; vertical-align: middle; text-align:center"> Jumlah  </th>
 			</tr>';
 		
-		
 		foreach($hasil AS $k=>$v){
-				$html .= "<tr>";
-				$html .= "<td align-text='center'>".$v['day']."</td>";
-				$html .= "<td style='text-align:right;padding-right:7px'>".number_format((int)$v['simpanan_pokok'])."</td>";
-				$html .= "<td style='text-align:right;padding-right:7px'>".number_format((int)$v['simpanan_wajib'])."</td>";
-				$html .= "<td style='text-align:right;padding-right:7px'>".number_format((int)$v['simpanan_sukarela'])."</td>";
-				$html .= "<td style='text-align:right;padding-right:7px'>".number_format((int)$v['simpanan_total'])."</td>";
-				$html .= "<td style='text-align:right;padding-right:7px'>".number_format($v['pinjaman_pokok'])."</td>";
-				$html .= "<td style='text-align:right;padding-right:7px'>".number_format($v['jasa_pokok'])."</td>";
-				$html .= "</tr>";
-				
-				$total_pokok += $v['simpanan_pokok'];
-				$total_wajib += $v['simpanan_wajib'];
-				$total_sukarela += $v['simpanan_sukarela'];
-				$total_total += $v['simpanan_total'];
-				$total_pinjaman_pokok += $v['pinjaman_pokok'];
-				$total_jasa_pokok += $v['jasa_pokok'];
+			$html .= "<tr>";
+			$html .= "<td style='text-align:center;'>".$v['day']."</td>";
+			$html .= "<td style='text-align:right;padding-right:7px'>".number_format((int)$v['simpanan_pokok'])."</td>";
+			$html .= "<td style='text-align:right;padding-right:7px'>".number_format((int)$v['simpanan_wajib'])."</td>";
+			$html .= "<td style='text-align:right;padding-right:7px'>".number_format((int)$v['simpanan_sukarela'])."</td>";
+			$html .= "<td style='text-align:right;padding-right:7px'>".number_format((int)$v['simpanan_total'])."</td>";
+			$html .= "<td style='text-align:right;padding-right:7px'>".number_format($v['pinjaman_pokok'])."</td>";
+			$html .= "<td style='text-align:right;padding-right:7px'>".number_format($v['jasa_pokok'])."</td>";
+			$html .= "</tr>";
+			
+			$total_pokok += $v['simpanan_pokok'];
+			$total_wajib += $v['simpanan_wajib'];
+			$total_sukarela += $v['simpanan_sukarela'];
+			$total_total += $v['simpanan_total'];
+			$total_pinjaman_pokok += $v['pinjaman_pokok'];
+			$total_jasa_pokok += $v['jasa_pokok'];
 		}
 		
 		$html .= '
-			<tr class="tfoot">
+			<tr class="tfoot" style="font-weight:bold;background-color:#f9f9f9">
 				<th>Total</th>
 				<th style="text-align:right;padding-right:7px">'.number_format($total_pokok).'</th>
 				<th style="text-align:right;padding-right:7px">'.number_format($total_wajib).'</th>
@@ -335,11 +344,26 @@ class Lap_bulanan_pengeluaran extends OPPController {
 
 		$html .= '</table>';
 
-		
-		echo $html; 
-		
+		return $html;
+	}
+
+	public function cetak_print(){
+		echo $this->_build_html(true);
 		echo "<script>window.print();</script>";
-		redirect("/lap_bulanan");
+		die();
+	}
+
+	public function export_excel(){
+		$bulan = isset($_GET["bulan"]) ? $_GET["bulan"] : date("m");
+		$tahun = isset($_GET["tahun"]) ? $_GET["tahun"] : date("Y");
+		$nama_file = 'laporan_bulanan_pengeluaran_' . $bulan . '_' . $tahun . '.xls';
+		header("Content-Type: application/vnd.ms-excel; charset=utf-8");
+		header("Content-Disposition: attachment; filename=\"" . $nama_file . "\"");
+		header("Cache-Control: max-age=0");
+		header("Pragma: no-cache");
+		echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />';
+		echo $this->_build_html(false);
+		die();
 	}
 }
 

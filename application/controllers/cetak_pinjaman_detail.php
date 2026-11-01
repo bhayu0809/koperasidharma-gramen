@@ -109,7 +109,7 @@ class Cetak_pinjaman_detail extends OperatorController {
 			<tr>
 				<td> Lama Pinjam </td>
 				<td> : </td>
-				<td> '.$row->lama_angsuran.' Minggu</td>
+				<td> '.$row->lama_angsuran.' '.satuan_angsuran($row->lama_angsuran, $row->satuan).'</td>
 			</tr>';
 			$html .= '</table>';
 
@@ -154,7 +154,7 @@ class Cetak_pinjaman_detail extends OperatorController {
 		$html .= '<br><br><strong> Simulasi Tagihan </strong><br><br>';
 		$html .= '<table width="100%">
 			<tr class="header_kolom">
-				<th style="width:10%;"> Minggu ke</th>
+				<th style="width:10%;"> '.satuan_angsuran($row->lama_angsuran, $row->satuan).' ke</th>
 				<th style="width:20%;"> Angsuran Pokok</th>
 				<th style="width:20%;"> Angsuran Bunga</th>
 				

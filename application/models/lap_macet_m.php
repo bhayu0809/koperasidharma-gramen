@@ -8,7 +8,7 @@ class Lap_macet_m extends CI_Model {
 
 		//panggil data simpanan
 	function get_data_tempo($limit, $start) {
-		$this->db->select('v_hitung_pinjaman.id AS id,v_hitung_pinjaman.tempo AS tempo,v_hitung_pinjaman.tgl_pinjam AS tgl_pinjam, v_hitung_pinjaman.tagihan AS tagihan, v_hitung_pinjaman.lama_angsuran AS lama_angsuran, tbl_anggota.nama AS nama, SUM(tbl_pinjaman_d.jumlah_bayar) AS jum_bayar, SUM(tbl_pinjaman_d.denda_rp) AS jum_denda');
+		$this->db->select('v_hitung_pinjaman.id AS id,v_hitung_pinjaman.tempo AS tempo,v_hitung_pinjaman.tgl_pinjam AS tgl_pinjam, v_hitung_pinjaman.tagihan AS tagihan, v_hitung_pinjaman.lama_angsuran AS lama_angsuran, v_hitung_pinjaman.satuan AS satuan, tbl_anggota.nama AS nama, SUM(tbl_pinjaman_d.jumlah_bayar) AS jum_bayar, SUM(tbl_pinjaman_d.denda_rp) AS jum_denda');
 		$this->db->from('v_hitung_pinjaman');
 		$this->db->where('lunas','Belum');
 		

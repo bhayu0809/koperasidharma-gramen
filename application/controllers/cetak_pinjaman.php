@@ -98,7 +98,7 @@ class Cetak_pinjaman extends OperatorController {
 			<tr>
 				<td> Lama Pinjam </td>
 				<td>:</td>				
-				<td>'.$row->lama_angsuran.' Minggu</td>
+				<td>'.$row->lama_angsuran.' '.satuan_angsuran($row->lama_angsuran, $row->satuan).'</td>
 			</tr>
 		</table>
 

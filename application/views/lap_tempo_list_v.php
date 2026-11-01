@@ -122,7 +122,7 @@
 					<td class="h_kiri">'.$rows->identitas.' - '.$rows->nama.'</td>
 					<td class="h_tengah">'.$tgl_pinjam.'</td>
 					<td class="h_tengah">'.$tgl_tempo.'</td>
-					<td class="h_tengah">'.$rows->lama_angsuran.' Bulan</td>
+					<td class="h_tengah">'.$rows->lama_angsuran.' '.satuan_angsuran($rows->lama_angsuran, $rows->satuan).'</td>
 					<td class="h_kanan">'.number_format(nsi_round($total_tagihan)).'</td>
 					<td class="h_kanan">'.number_format(nsi_round($jml_bayar->total)).'</td>
 					<td class="h_kanan">'.number_format(nsi_round($sisa_tagihan)).'</td>
